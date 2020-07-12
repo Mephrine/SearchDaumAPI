@@ -55,8 +55,8 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Note: ReactorKit에서 ViewController에서 실행될 Action을 모아둔 enum
      */
     enum Action {
-        case inputSearch(searchText: String)        // 텍스트 입력
-        case loadMore                               // 20개 더 불러오기
+//        case inputSearch(searchText: String)        // 텍스트 입력
+//        case loadMore                               // 20개 더 불러오기
     }
     
     /**
@@ -66,10 +66,10 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Note: ReactorKit에서 Action이 들어오면 비즈니스 로직 처리 후 변경 값을 리턴하는 로직을 담당하는 Mutation함수에서 처리할 enum 모음
      */
     enum Mutation {
-        case searchResult(list: [SearchTableViewSection])
-        case searchText(text: String)
-        case getTotalPage(totalPage: Int)
-        case addUserList(list: [SearchTableViewSection])
+//        case searchResult(list: [SearchTableViewSection])
+//        case searchText(text: String)
+//        case getTotalPage(totalPage: Int)
+//        case addUserList(list: [SearchTableViewSection])
     }
     
     /**
@@ -96,12 +96,12 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Note: Action이 들어오면 해당 부분을 타고, Service와의 Side Effect 처리를 함. (API 통신 등.) 그리고 Mutaion으로 반환
      */
     func mutate(action: Action) -> Observable<Mutation> {
-        switch action {
-        case .inputSearch(let searchText):
-            <#code#>
-        case .loadMore:
-            <#code#>
-        }
+//        switch action {
+//        case .inputSearch(let searchText):
+//            <#code#>
+//        case .loadMore:
+//            <#code#>
+//        }
     }
     /**
      # reduce
@@ -115,16 +115,16 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      */
     func reduce(state: State, mutation: Mutation) -> State {
         var newState = state
-        switch mutation {
-        case .searchResult(let list):
-            <#code#>
-        case .searchText(let text):
-            <#code#>
-        case .getTotalPage(let totalPage):
-            <#code#>
-        case .addUserList(let list):
-            <#code#>
-        }
+//        switch mutation {
+//        case .searchResult(let list):
+//            <#code#>
+//        case .searchText(let text):
+//            <#code#>
+//        case .getTotalPage(let totalPage):
+//            <#code#>
+//        case .addUserList(let list):
+//            <#code#>
+//        }
         return newState
     }
     

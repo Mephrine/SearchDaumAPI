@@ -93,71 +93,71 @@ final class SearchListViewController: BaseViewController, StoryboardView, Storyb
         
         // action
         // searchBar에 텍스트 변경 옵션이 일어날 경우
-        self.searchBar.rx.text
-            .map{ $0?.trimSide }
-            .asDriver(onErrorJustReturn: "")
-            .debounce(RxTimeInterval.milliseconds(500))
-            .distinctUntilChanged()
-            .map{ Reactor.Action.inputSearch(searchText: $0 ?? "") }
-            .drive(reactor.action)
-            .disposed(by: disposeBag)
-        
-        //state
-        // TableView
-        reactor.state
-            .map{ $0.resultList }
-            .bind(to: self.searchTableView.rx.items(dataSource: dataSource))
-            .disposed(by: disposeBag)
-        
-        // 데이터가 없거나 SearchBar 검색어가 비어있는 경우
-        reactor.state.map{ $0.noDataText }
-            .distinctUntilChanged()
-            .observeOn(Schedulers.main)
-            .subscribe(onNext: { [weak self] in
-                self?.noDataView.rx.animated.fade(duration: self?.ANIMATION_DURATION ?? 0.3).isHidden.onNext($0.isEmpty)
-                self?.noDataLabel.rx.animated.fade(duration: self?.ANIMATION_DURATION ?? 0.3).text.onNext($0)
-            })
-            .disposed(by: disposeBag)
-        
-        // 재검색 시, 스크롤 상단으로 올리기
-        reactor.isSearchReload
-            .filter{ $0 == true }
-            .filter{ _ in !reactor.isEmptyCurrentResultList() }
-            .observeOn(Schedulers.main)
-            .subscribe(onNext: { [weak self] _ in
-                guard let self = self else { return }
-                self.searchTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
-            }).disposed(by: disposeBag)
-        
-        // 로딩바 관리
-        reactor.isLoading
-            .distinctUntilChanged()
-            .observeOn(Schedulers.main)
-            .subscribe(onNext:{ [weak self] in
-                guard let self = self else { return }
-                if $0 {
-                    self.loadingView.isHidden = false
-                    self.loadingView.startAnimating()
-                    self.searchTableView.tableFooterView = self.loadingView
-                } else {
-                    self.loadingView.stopAnimating()
-                    self.searchTableView.tableFooterView = nil
-                    self.loadingView.isHidden = true
-                }
-            }).disposed(by: disposeBag)
-        
-        // e.g.
-        // 마지막 Section의 마지막 Row가 보여질 경우 다음 페이지 데이터 불러오기
-        self.searchTableView.rx.willDisplayCell
-            .filter{ _ in reactor.chkEnablePaging() }
-            .subscribe(onNext: { [weak self] cell, indexPath in
-                guard let self = self else { return }
-                let lastSectionIndex = self.searchTableView.numberOfSections - 1
-                let lastRowIndex = self.searchTableView.numberOfRows(inSection: lastSectionIndex) - 1
-                if indexPath.section ==  lastSectionIndex && indexPath.row == lastRowIndex {
-                    self.reactor?.action.onNext(.loadMore)
-                }
-            }).disposed(by: disposeBag)
+//        self.searchBar.rx.text
+//            .map{ $0?.trimSide }
+//            .asDriver(onErrorJustReturn: "")
+//            .debounce(RxTimeInterval.milliseconds(500))
+//            .distinctUntilChanged()
+//            .map{ Reactor.Action.inputSearch(searchText: $0 ?? "") }
+//            .drive(reactor.action)
+//            .disposed(by: disposeBag)
+//        
+//        //state
+//        // TableView
+//        reactor.state
+//            .map{ $0.resultList }
+//            .bind(to: self.searchTableView.rx.items(dataSource: dataSource))
+//            .disposed(by: disposeBag)
+//        
+//        // 데이터가 없거나 SearchBar 검색어가 비어있는 경우
+//        reactor.state.map{ $0.noDataText }
+//            .distinctUntilChanged()
+//            .observeOn(Schedulers.main)
+//            .subscribe(onNext: { [weak self] in
+//                self?.noDataView.rx.animated.fade(duration: self?.ANIMATION_DURATION ?? 0.3).isHidden.onNext($0.isEmpty)
+//                self?.noDataLabel.rx.animated.fade(duration: self?.ANIMATION_DURATION ?? 0.3).text.onNext($0)
+//            })
+//            .disposed(by: disposeBag)
+//        
+//        // 재검색 시, 스크롤 상단으로 올리기
+//        reactor.isSearchReload
+//            .filter{ $0 == true }
+//            .filter{ _ in !reactor.isEmptyCurrentResultList() }
+//            .observeOn(Schedulers.main)
+//            .subscribe(onNext: { [weak self] _ in
+//                guard let self = self else { return }
+//                self.searchTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+//            }).disposed(by: disposeBag)
+//        
+//        // 로딩바 관리
+//        reactor.isLoading
+//            .distinctUntilChanged()
+//            .observeOn(Schedulers.main)
+//            .subscribe(onNext:{ [weak self] in
+//                guard let self = self else { return }
+//                if $0 {
+//                    self.loadingView.isHidden = false
+//                    self.loadingView.startAnimating()
+//                    self.searchTableView.tableFooterView = self.loadingView
+//                } else {
+//                    self.loadingView.stopAnimating()
+//                    self.searchTableView.tableFooterView = nil
+//                    self.loadingView.isHidden = true
+//                }
+//            }).disposed(by: disposeBag)
+//        
+//        // e.g.
+//        // 마지막 Section의 마지막 Row가 보여질 경우 다음 페이지 데이터 불러오기
+//        self.searchTableView.rx.willDisplayCell
+//            .filter{ _ in reactor.chkEnablePaging() }
+//            .subscribe(onNext: { [weak self] cell, indexPath in
+//                guard let self = self else { return }
+//                let lastSectionIndex = self.searchTableView.numberOfSections - 1
+//                let lastRowIndex = self.searchTableView.numberOfRows(inSection: lastSectionIndex) - 1
+//                if indexPath.section ==  lastSectionIndex && indexPath.row == lastRowIndex {
+//                    self.reactor?.action.onNext(.loadMore)
+//                }
+//            }).disposed(by: disposeBag)
     }
     
     //MARK: - UI

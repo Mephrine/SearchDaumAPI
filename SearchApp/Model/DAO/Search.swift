@@ -23,8 +23,8 @@ struct SearchResult: ALSwiftyJSONAble {
     }
 }
 
-fileprivate struct SearchItem: ALSwiftyJSONAble {
-    let name: String? = ""
+struct SearchItem: ALSwiftyJSONAble {
+    var name: String? = ""
     let contents: String?
     let datetime: String?
     let thumbnail: String?

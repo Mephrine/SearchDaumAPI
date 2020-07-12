@@ -21,14 +21,34 @@ protocol HasSearchService {
 }
 
 /**
+ # (E) SearchSort
+ - Author: Mephrine
+ - Date: 20.07.12
+ - Note: 검색 정렬 방식
+*/
+public enum SearchSort {
+    case accuracy
+    case recency
+    
+    var value: String {
+        switch self {
+        case .recency:
+            return "recency"
+        default:
+            return "accuracy"
+        }
+    }
+}
+
+/**
  # (P) HasSearchService
  - Author: Mephrine
  - Date: 20.07.12
  - Note: 검색 관련 서비스 프로토콜에서 구현되는 항목
 */
 protocol SearchServiceProtocol {
-    func fetchSearchCafe(_ searchText: String, _ sort: String, _ page: Int) -> Single<SearchResult>
-    func fetchSearchBlog(_ searchText: String, _ sort: String, _ page: Int) -> Single<SearchResult>
+    func fetchSearchCafe(_ searchText: String, _ sort: SearchSort, _ page: Int) -> Single<SearchResult>
+    func fetchSearchBlog(_ searchText: String, _ sort: SearchSort, _ page: Int) -> Single<SearchResult>
 }
 
 final class SearchService: SearchServiceProtocol {
@@ -45,9 +65,9 @@ final class SearchService: SearchServiceProtocol {
      - Returns: Single<SearchItem>
      - Note: 네트워크 통신을 통해 카페 검색 정보를 받아옴.
     */
-    func fetchSearchCafe(_ searchText: String, _ sort: String, _ page: Int) -> Single<SearchResult> {
+    func fetchSearchCafe(_ searchText: String, _ sort: SearchSort, _ page: Int) -> Single<SearchResult> {
         networking.session.cancelAllRequests()
-        return networking.rx.request(.searchCafe(query: searchText, sort: sort, page: page))
+        return networking.rx.request(.searchCafe(query: searchText, sort: sort.value, page: page))
             .map(to: SearchResult.self)
     }
     
@@ -62,9 +82,9 @@ final class SearchService: SearchServiceProtocol {
      - Returns: Single<SearchItem>
      - Note: 네트워크 통신을 통해 블로그 검색 정보를 받아옴.
     */
-    func fetchSearchBlog(_ searchText: String, _ sort: String, _ page: Int) -> Single<SearchResult> {
+    func fetchSearchBlog(_ searchText: String, _ sort: SearchSort, _ page: Int) -> Single<SearchResult> {
         networking.session.cancelAllRequests()
-        return networking.rx.request(.searchBlog(query: searchText, sort: sort, page: page))
+        return networking.rx.request(.searchBlog(query: searchText, sort: sort.value, page: page))
         .map(to: SearchResult.self)
     }
 }
@@ -83,7 +103,7 @@ extension Reactive where Base: SearchService {
      - Returns: Observable<SearchItem>
      - Note: 카페 검색 정보를 rx로 접근 가능하도록 확장한 함수.
     */
-    func searchCafe(searchText: String, sort: String, page: Int) -> Observable<SearchResult> {
+    func searchCafe(searchText: String, sort: SearchSort = .accuracy, page: Int) -> Observable<SearchResult> {
         return base.fetchSearchCafe(searchText, sort, page).asObservable()
     }
     
@@ -98,7 +118,7 @@ extension Reactive where Base: SearchService {
      - Returns: Observable<SearchItem>
      - Note: 블로그 검색 정보를 rx로 접근 가능하도록 확장한 함수.
     */
-    func searchBlog(searchText: String, sort: String, page: Int) -> Observable<SearchResult> {
+    func searchBlog(searchText: String, sort: SearchSort = .accuracy, page: Int) -> Observable<SearchResult> {
         return base.fetchSearchBlog(searchText, sort, page).asObservable()
     }
 }
