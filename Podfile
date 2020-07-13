@@ -16,6 +16,7 @@ target 'SearchApp' do
   pod  "RxOptional"
   pod  "RxViewController"
   pod  "RxAnimated"
+  pod  "RxKeyboard"
   
   #UI
   pod  "SnapKit"

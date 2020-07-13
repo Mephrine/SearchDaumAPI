@@ -28,6 +28,23 @@ public protocol ALSwiftyJSONAble {
 }
 
 /**
+# (E) APIError
+- Author: Mephrine
+- Date: 20.07.12
+- Note: API Error 모음
+*/
+enum APIError: Error {
+    case noData
+    
+    var desc: String? {
+        switch self {
+        case .noData:
+            return "Error : NoData"
+        }
+    }
+}
+
+/**
  # (E) CallAPI.swift
  - Author: Mephrine
  - Date: 20.06.22

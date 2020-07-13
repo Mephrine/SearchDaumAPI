@@ -14,7 +14,7 @@ import UIKit
 # (C) SearchResultCell
 - Author: Mephrine
 - Date: 20.07.12
-- Note: 유저 정보를 보여주는 Cell
+- Note: 검색 결과를 보여주는 Cell
 */
 final class SearchResultCell: UITableViewCell, NibReusable {
     
@@ -37,7 +37,7 @@ final class SearchResultCell: UITableViewCell, NibReusable {
      - Returns:
      - Note: Cell Model 정보를 Cell에 구성
     */
-    func configure(item: SearchResultCellModel) {
+    func configure(model: SearchResultCellModel) {
         
     }
 }

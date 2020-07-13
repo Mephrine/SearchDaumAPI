@@ -14,7 +14,7 @@ struct SearchTableViewSection {
 }
 
 extension SearchTableViewSection: SectionModelType {
-    public typealias Item = SearchResultCellModel
+    public typealias Item = SearchItem
     
     init(original: SearchTableViewSection, items: [Item]) {
         self = original
@@ -29,9 +29,9 @@ extension SearchTableViewSection: SectionModelType {
 - Note: 검색 결과 정보를 보여주는 Cell의 Model
 */
 struct SearchResultCellModel {
-    let model: SearchResult
-    
-    init(model: SearchResult, service: AppService) {
+    let model: SearchItem
+
+    init(model: SearchItem) {
         self.model = model
     }
 }

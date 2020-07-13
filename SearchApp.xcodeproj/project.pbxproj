@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		036B2F4624BAE19A00DC9ADD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2F4524BAE19A00DC9ADD /* AppDelegate.swift */; };
-		036B2F4A24BAE19A00DC9ADD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2F4924BAE19A00DC9ADD /* ViewController.swift */; };
 		036B2F4D24BAE19A00DC9ADD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 036B2F4B24BAE19A00DC9ADD /* Main.storyboard */; };
 		036B2F4F24BAE19F00DC9ADD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 036B2F4E24BAE19F00DC9ADD /* Assets.xcassets */; };
 		036B2F5224BAE19F00DC9ADD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 036B2F5024BAE19F00DC9ADD /* LaunchScreen.storyboard */; };
@@ -48,6 +47,8 @@
 		036B2FCE24BB44DE00DC9ADD /* SearchCafeDummy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2FCD24BB44DE00DC9ADD /* SearchCafeDummy.swift */; };
 		036B2FD024BB44FA00DC9ADD /* SearchBlogDummy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2FCF24BB44FA00DC9ADD /* SearchBlogDummy.swift */; };
 		036B2FD224BB4E7200DC9ADD /* SearchServiceStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2FD124BB4E7200DC9ADD /* SearchServiceStub.swift */; };
+		036B2FD424BB7D2800DC9ADD /* UserDefault+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2FD324BB7D2800DC9ADD /* UserDefault+Ext.swift */; };
+		036B2FD624BB7EB200DC9ADD /* SearchHistoryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036B2FD524BB7EB200DC9ADD /* SearchHistoryCell.swift */; };
 		0AE2AB8F62588124CA73EE6F /* Pods_SearchApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E7963EFA77158C049993743 /* Pods_SearchApp.framework */; };
 		36326C0CE7B09C0B2C09B929 /* Pods_SearchAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A02D4B585B75192D08A34702 /* Pods_SearchAppTests.framework */; };
 /* End PBXBuildFile section */
@@ -65,7 +66,6 @@
 /* Begin PBXFileReference section */
 		036B2F4224BAE19A00DC9ADD /* SearchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SearchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		036B2F4524BAE19A00DC9ADD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		036B2F4924BAE19A00DC9ADD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		036B2F4C24BAE19A00DC9ADD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		036B2F4E24BAE19F00DC9ADD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		036B2F5124BAE19F00DC9ADD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -108,6 +108,8 @@
 		036B2FCD24BB44DE00DC9ADD /* SearchCafeDummy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCafeDummy.swift; sourceTree = "<group>"; };
 		036B2FCF24BB44FA00DC9ADD /* SearchBlogDummy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBlogDummy.swift; sourceTree = "<group>"; };
 		036B2FD124BB4E7200DC9ADD /* SearchServiceStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchServiceStub.swift; sourceTree = "<group>"; };
+		036B2FD324BB7D2800DC9ADD /* UserDefault+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefault+Ext.swift"; sourceTree = "<group>"; };
+		036B2FD524BB7EB200DC9ADD /* SearchHistoryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryCell.swift; sourceTree = "<group>"; };
 		0710BFA1D0A14E94396ACD07 /* Pods-SearchApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SearchApp.debug.xcconfig"; path = "Target Support Files/Pods-SearchApp/Pods-SearchApp.debug.xcconfig"; sourceTree = "<group>"; };
 		5775FBFF1536E6D4A26250D7 /* Pods-SearchAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SearchAppTests.debug.xcconfig"; path = "Target Support Files/Pods-SearchAppTests/Pods-SearchAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7E7963EFA77158C049993743 /* Pods_SearchApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SearchApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,7 +229,6 @@
 				036B2F8224BAE3DF00DC9ADD /* SearchList */,
 				036B2F8324BAE3E700DC9ADD /* SearchDetail */,
 				036B2FB924BB0B4000DC9ADD /* Webpage */,
-				036B2F4924BAE19A00DC9ADD /* ViewController.swift */,
 				036B2F4B24BAE19A00DC9ADD /* Main.storyboard */,
 			);
 			path = UI;
@@ -242,6 +243,7 @@
 				036B2F8524BAE41700DC9ADD /* UIApplication+Ext.swift */,
 				036B2F8624BAE41700DC9ADD /* UIColor+Ext.swift */,
 				036B2F8424BAE41700DC9ADD /* UIView+Ext.swift */,
+				036B2FD324BB7D2800DC9ADD /* UserDefault+Ext.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -326,6 +328,7 @@
 			children = (
 				036B2FA424BAE58A00DC9ADD /* SearchResultCell.swift */,
 				036B2FA624BAE59600DC9ADD /* SearchResultCellModel.swift */,
+				036B2FD524BB7EB200DC9ADD /* SearchHistoryCell.swift */,
 			);
 			path = Cell;
 			sourceTree = "<group>";
@@ -595,6 +598,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				036B2FD424BB7D2800DC9ADD /* UserDefault+Ext.swift in Sources */,
 				036B2FB324BAEED600DC9ADD /* Search.swift in Sources */,
 				036B2F7724BAE38500DC9ADD /* Logger.swift in Sources */,
 				036B2FC424BB3A8E00DC9ADD /* FontUtils.swift in Sources */,
@@ -610,7 +614,6 @@
 				036B2FAF24BAEC1F00DC9ADD /* AppService.swift in Sources */,
 				036B2F9E24BAE41700DC9ADD /* String+Ext.swift in Sources */,
 				036B2F9D24BAE41700DC9ADD /* PrimitiveSequence+SwiftyJSONMapper.swift in Sources */,
-				036B2F4A24BAE19A00DC9ADD /* ViewController.swift in Sources */,
 				036B2F9824BAE41700DC9ADD /* ObservableConvertibleType+Void.swift in Sources */,
 				036B2F6B24BAE2A900DC9ADD /* StringDefinition.swift in Sources */,
 				036B2F9B24BAE41700DC9ADD /* Response+SwiftyJSONMapper.swift in Sources */,
@@ -625,6 +628,7 @@
 				036B2FA024BAE52500DC9ADD /* SearchListViewController.swift in Sources */,
 				036B2F4624BAE19A00DC9ADD /* AppDelegate.swift in Sources */,
 				036B2FBC24BB0FEA00DC9ADD /* BaseViewModel.swift in Sources */,
+				036B2FD624BB7EB200DC9ADD /* SearchHistoryCell.swift in Sources */,
 				036B2FB124BAEC2C00DC9ADD /* SearchService.swift in Sources */,
 				036B2F7F24BAE38F00DC9ADD /* CallAPI.swift in Sources */,
 				036B2F9724BAE41700DC9ADD /* JSON+Ext.swift in Sources */,

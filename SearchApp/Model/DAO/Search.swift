@@ -25,6 +25,7 @@ struct SearchResult: ALSwiftyJSONAble {
 
 struct SearchItem: ALSwiftyJSONAble {
     var name: String? = ""
+    var type: String? = ""
     let contents: String?
     let datetime: String?
     let thumbnail: String?
@@ -34,9 +35,11 @@ struct SearchItem: ALSwiftyJSONAble {
     init?(jsonData: JSON) {
         if let cafeName = jsonData["cafename"].string {
             self.name = cafeName
+            self.type = "cafe"
         }
         if let blogName = jsonData["blogname"].string {
             self.name = blogName
+            self.type = "blog"
         }
         
         self.contents = jsonData["contents"].string
