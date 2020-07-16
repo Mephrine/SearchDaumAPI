@@ -6,7 +6,7 @@
 //  Copyright © 2020 Mephrine. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 extension String {
     func index(at offset: Int, from start: Index? = nil) -> Index? {
@@ -23,6 +23,39 @@ extension String {
     
     var trimSide: String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    private func toDate(_ format: String = "yyyy-MM-dd'T'hh:mm:ss'.000'xxx") -> Date {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        formatter.timeZone = TimeZone(identifier: "UTC")!
+        return formatter.date(from: self) ?? Date()
+    }
+    
+    func toNearDateStr(format: String = "yyyy-MM-dd'T'hh:mm:ss'.000'xxx") -> String {
+        return self.toDate().dayDifference
+    }
+    
+    func toDateKr(format: String = "yyyy-MM-dd'T'hh:mm:ss'.000'xxx") -> String {
+        return self.toDate().dateToString(format: "yyyy년 MM월 dd일 a HH시 mm분")
+    }
+    
+    func htmlAttributedString(font: UIFont) -> NSAttributedString? {
+        
+        guard let data = self.data(using: String.Encoding.utf16, allowLossyConversion: false) else {
+            return nil
+        }
+
+        guard let html = try? NSMutableAttributedString(
+                                        data: data,
+                                     options: [.documentType: NSAttributedString.DocumentType.html],
+                                     documentAttributes: nil) else {
+            return nil
+        }
+        
+        html.addAttribute(.font, value: font, range: NSMakeRange(0, html.string.utf16.count))
+
+        return html
     }
     
     

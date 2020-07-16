@@ -26,6 +26,7 @@ struct SearchResult: ALSwiftyJSONAble {
 struct SearchItem: ALSwiftyJSONAble {
     var name: String? = ""
     var type: String? = ""
+    var isReading: Bool = false
     let contents: String?
     let datetime: String?
     let thumbnail: String?

@@ -30,6 +30,41 @@ extension SearchTableViewSection: SectionModelType {
 */
 struct SearchResultCellModel {
     let model: SearchItem
+    
+    var thumbnailURL: URL? {
+        if let thumbnail = model.thumbnail {
+            return URL(string:thumbnail)
+        }
+        return nil
+    }
+    
+    var typeBGColor: UIColor {
+        if model.type == "cafe" {
+            return .red
+        } else {
+            return .green
+        }
+    }
+    
+    var type: String {
+        return model.type ?? ""
+    }
+    
+    var name: String {
+        return model.name ?? ""
+    }
+    
+    var title: NSAttributedString? {
+        return model.title?.htmlAttributedString(font: Utils.Font(.Regular, size: 15))
+    }
+    
+    var dateTime: String {
+        return model.datetime?.toNearDateStr() ?? ""
+    }
+    
+    var isReading: Bool {
+        return model.isReading
+    }
 
     init(model: SearchItem) {
         self.model = model

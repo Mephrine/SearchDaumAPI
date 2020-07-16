@@ -8,6 +8,20 @@
 
 import UIKit
 import Reusable
+import RxDataSources
+
+struct HistoryTableViewSection {
+    var items: [Item]
+}
+
+extension HistoryTableViewSection: SectionModelType {
+    public typealias Item = String
+    
+    init(original: HistoryTableViewSection, items: [Item]) {
+        self = original
+        self.items = items
+    }
+}
 
 /**
 # (C) SearchHistoryCell
@@ -19,19 +33,29 @@ final class SearchHistoryCell: UITableViewCell, Reusable {
     private lazy var historyLabel = UILabel(frame: .zero).then {
         $0.backgroundColor = .clear
         $0.textColor = .black
-        $0.font = FontUtils.Font(.Regular, size: 14)
+        $0.font = Utils.Font(.Regular, size: 14)
         $0.numberOfLines = 0
         $0.textAlignment = .left
+    }
+    
+    private let lineView = UIView(frame: .zero).then {
+        $0.backgroundColor = UIColor(hex: 0x666666)
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         self.addSubview(self.historyLabel)
-        self.historyLabel.snp.makeConstraints {
+        self.addSubview(lineView)
+        self.historyLabel.snp.makeConstraints { [weak self] in
+            guard let self = self else { return }
             $0.top.bottom.equalToSuperview()
             $0.left.equalTo(self.snp.left).offset(20)
             $0.right.equalTo(self.snp.right).offset(-20)
+        }
+        self.lineView.snp.makeConstraints {
+            $0.left.right.bottom.equalToSuperview()
+            $0.height.equalTo(1)
         }
         
         self.selectionStyle = .none

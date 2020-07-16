@@ -83,6 +83,25 @@ final class SearchService: SearchServiceProtocol {
     func defaultSearchHistory() -> Single<[String]?> {
         return Single.just(Defaults.serachHistory)
     }
+    
+    /**
+     # defaultAddSearchHistory
+     - Author: Mephrine
+     - Date: 20.07.14
+     - Parameters:
+     - Returns: Single<[String]?>
+     - Note: UserDefault에  검색 히스토리 더하기
+    */
+    func defaultAddSearchHistory(_ searchText: String) {
+        // 중복 제거 및 더하기
+        if var historyArray = Defaults.serachHistory {
+            historyArray.append(searchText)
+            let history = Set(historyArray)
+            Defaults.serachHistory = Array(history)
+        } else {
+            Defaults.serachHistory = [searchText]
+        }
+    }
 }
 
 extension SearchService: ReactiveCompatible {}
@@ -129,11 +148,13 @@ extension Reactive where Base: SearchService {
      - Returns: Observable<SearchResult>
      - Note: 카페, 블로그 검색 정보를 반환.
     */
-    func searchAll(searchText: String, sort: SearchSort = .accuracy, page: Int) -> Observable<SearchResult> {
-        let searchCafeObservable = searchCafe(searchText: searchText, sort: sort, page: page)
-        let searchBlogObservable = searchBlog(searchText: searchText, sort: sort, page: page)
-        return Observable.merge(searchCafeObservable, searchBlogObservable)
-    }
+//    func searchAll(searchText: String, sort: SearchSort = .accuracy, page: Int) -> Observable<SearchResult> {
+//        let searchCafeObservable = searchCafe(searchText: searchText, sort: sort, page: page)
+//        let searchBlogObservable = searchBlog(searchText: searchText, sort: sort, page: page)
+//        
+//        return Observable.zip(searchCafeObservable, searchBlogObservable) { Observable.of($0, $1) }
+//            .flatMap{ $0 }
+//    }
     
     /**
      # searchHistory

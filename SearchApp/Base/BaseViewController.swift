@@ -44,12 +44,13 @@ class BaseViewController: UIViewController {
     
     //MARK: - LifeCycle
     override func viewDidLoad() {
+        self.initView()
         super.viewDidLoad()
         
         // 자동으로 스크롤뷰 인셋 조정하는 코드 막기
         self.automaticallyAdjustsScrollViewInsets = false
         
-        self.initView()
+        
 
     }
     

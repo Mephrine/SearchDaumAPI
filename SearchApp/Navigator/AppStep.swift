@@ -22,13 +22,16 @@ enum AppStep: Step {
     case goSearchList                                    // 검색 리스트 화면으로 이동
     
     // MARK: - Search List
-    case goSearchDetail(info: SearchResult, row: Int)    // 검색 상세 화면으로 이동
+    case goSearchDetail(model: SearchItem, row: Int)    // 검색 상세 화면으로 이동
+    case returnDetailToList(row: Int)                         // 상세에서 돌아왔을 때
     
     // MARK: - Search Detail
-    case goBackToMain(row: Int?)                         // 검색 리스트 화면으로 되돌아가기
-    case goWebpage(url: String, title: String)           // 웹페이지 화면으로 이동
+    case goBackToSearchList(row: Int?)                         // 검색 리스트 화면으로 되돌아가기
+    case goWebpage(url: String, title: String)                 // 웹페이지 화면으로 이동
     
     // MARK: - Webpage
     case goBackToSearchDetail                            // 검색 상세 화면으로 되돌아가기
+    case goShowTelNumber(url: String)                                  // 전화 링크 이동
+    case goSFSafari(url: String)                                      // SFSafari뷰컨트롤러로 이동
 }
 

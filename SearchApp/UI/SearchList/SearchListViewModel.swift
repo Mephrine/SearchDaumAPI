@@ -11,11 +11,11 @@ import ReactorKit
 
 
 /**
-# (E) SearchFilter
-- Author: Mephrine
-- Date: 20.07.12
-- Note: SearchFilter 모음
-*/
+ # (E) SearchFilter
+ - Author: Mephrine
+ - Date: 20.07.12
+ - Note: SearchFilter 모음
+ */
 enum SearchFilter: String {
     case all = "All"
     case blog = "Blog"
@@ -49,10 +49,10 @@ enum SearchFilter: String {
  - Author: Mephrine
  - Date: 20.07.12
  - Note: 검색 정렬 방식
-*/
+ */
 enum SearchSort: String {
-    case accuracy = "Datetime"
-    case recency = "Title"
+    case accuracy = "Title"
+    case recency = "Datetime"
     
     var value: String {
         switch self {
@@ -96,9 +96,9 @@ final class SearchListViewModel: BaseViewModel, Reactor {
         case tapHistory(selected: String)               // 예전 검색 기록 클릭
         case tapSearchButton(searchText: String)        // 검색 버튼 클릭
         case loadMore                                   // 다음 페이지 불러오기
-        case tapFilterButton                            // 필터뷰 버튼 클릭
         case selectFilter(selected: String?)            // 변경할 필터 선택
         case selectSort(selected: String?)              // 변경할 정렬 시트 선택
+        case readWebpage(index: Int)  // webpage URL을 확인한 경우
     }
     
     /**
@@ -109,14 +109,18 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      */
     enum Mutation {
         case historyList(list: [String])
-        case searchResult(list: [SearchItem])
+        case searchResult(list: SearchResult)
+        case searchBlog(list: SearchResult)
+        case searchCafe(list: SearchResult)
         case searchText(text: String)
+        case loadMore(list: SearchResult)
+        case loadMoreAll(list: SearchResult)
         case totalPage(totalPage: Int)
         case isEndPage(isEnd: Bool)
-        case addResultList(list: [SearchItem])
-        case showFilterView(isShowing: Bool)
         case changeFilter(selected: SearchFilter)
         case changeSort(selected: SearchSort)
+        case changeRead(index: Int)
+        case none
     }
     
     /**
@@ -130,11 +134,12 @@ final class SearchListViewModel: BaseViewModel, Reactor {
         var totalPage: Int = PAGE_COUNT                 // 불러온 총 페이지 수
         var isEnd: Bool = false                         // 페이징 가능 여부
         var resultList: [SearchTableViewSection] = []   // 실제 테이블뷰에 보여질 리스트
-        var allList: [SearchItem] = []                  // 모든 리스트
+        var blogList: SearchResult?                     // 블로그 검색 리스트
+        var cafeList: SearchResult?                     // 카페 검색 리스트
+        var remainList: [SearchItem] = []               // 잔여 리스트
         var searchText: String = ""                     // 검색한 텍스트
-        var noDataText: String = ""                     // No Data or No Input
-        var historyList: [String] = []                  // 히스토리 리스트
-        var isShowingFilterView: Bool = false           // 필터뷰 숨김 여부
+        var noDataText: String = STR_SEARCH_NO_INPUT    // No Data or No Input
+        var historyList: [HistoryTableViewSection] = [] // 히스토리 리스트
         var filterState: SearchFilter = .all            // 필터 상태값
         var sortState: SearchSort = .accuracy           // 정렬 상태값
     }
@@ -159,94 +164,147 @@ final class SearchListViewModel: BaseViewModel, Reactor {
                 .map { Mutation.historyList(list: $0 ?? []) }
         // 히스토리 내역 중 선택된 텍스트로 검색
         case .tapHistory(let selected):
-            let requestList = requestSearchObservable(searchText: selected, sort: currentState.sortState, filter: currentState.filterState, page: 1)
-                .share(replay: 1, scope: .forever)
+            if selected == currentState.searchText {
+                return Observable.just(.none)
+            }
+            let textObservable = Observable.just(Mutation.searchText(text: selected))
             
-            let pageCntObservable = requestList.map { $0.totalCount }
-                .filterNil()
-                .map { Mutation.totalPage(totalPage: $0) }
-            
-            let isEndPageObservable = requestList.map { $0.isEnd }
-                .filterNil()
-                .map { Mutation.isEndPage(isEnd: $0) }
-            
-            let requestObservable = requestList.map{ $0.items }
-                .filterNil()
-                .map{ Mutation.searchResult(list: $0) }
-            
-            return .concat(requestObservable, pageCntObservable, isEndPageObservable)
+            if currentState.filterState == .blog {
+                let requestObservable = service.searchService.rx.searchBlog(searchText: selected, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(textObservable, requestObservable)
+            }
+                
+            else if currentState.filterState == .cafe {
+                let requestObservable = service.searchService.rx.searchCafe(searchText: selected, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(textObservable, requestObservable)
+            }
+            else {
+                // 25 / 25개씩 불러와서 정렬하고 25개만 끊어서 보여주기.
+                let requestBlogObservable = service.searchService.rx.searchBlog(searchText: selected, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchBlog(list: $0)}
+                let requestCafeObservable = service.searchService.rx.searchCafe(searchText: selected, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchCafe(list: $0)}
+                
+                return .concat(textObservable, requestBlogObservable, requestCafeObservable)
+            }
         // 검색어로 검색하기
         case .tapSearchButton(let searchText):
-            let requestList = requestSearchObservable(searchText: searchText, sort: currentState.sortState, filter: currentState.filterState, page: 1)
-                .share(replay: 1, scope: .forever)
+            let textObservable = Observable.just(Mutation.searchText(text: searchText))
             
-            let pageCntObservable = requestList.map { $0.totalCount }
-                .filterNil()
-                .map { Mutation.totalPage(totalPage: $0) }
+            if currentState.filterState == .blog {
+                let requestObservable = service.searchService.rx.searchBlog(searchText: searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
                 
-            let isEndPageObservable = requestList.map { $0.isEnd }
-                .filterNil()
-                .map { Mutation.isEndPage(isEnd: $0) }
-            
-            let requestObservable = requestList.map{ $0.items }
-                .filterNil()
-                .map{ Mutation.searchResult(list: $0) }
-            
-            return .concat(requestObservable, pageCntObservable, isEndPageObservable)
+                return .concat(textObservable, requestObservable)
+            }
+                
+            else if currentState.filterState == .cafe {
+                let requestObservable = service.searchService.rx.searchCafe(searchText: searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(textObservable, requestObservable)
+            }
+            else {
+                // 25 / 25개씩 불러와서 정렬하고 25개만 끊어서 보여주기.
+                let requestBlogObservable = service.searchService.rx.searchBlog(searchText: searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchBlog(list: $0)}
+                let requestCafeObservable = service.searchService.rx.searchCafe(searchText: searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchCafe(list: $0)}
+                
+                return .concat(textObservable, requestBlogObservable, requestCafeObservable)
+            }
         // 더 불러오기
         case .loadMore:
             self.isLoading.onNext(true)
             
-            return requestSearchObservable(searchText: currentState.searchText, sort: currentState.sortState, filter: currentState.filterState, page: currentState.page)
-                .map{ $0.items }
-                .filterNil()
-                .map{ Mutation.searchResult(list: $0) }
-        // 필터뷰 보이기
-        case .tapFilterButton:
-            return Observable.just(.showFilterView(isShowing: true))
+            if currentState.filterState == .blog {
+                return service.searchService.rx.searchBlog(searchText: currentState.searchText, sort: currentState.sortState, page: currentState.page)
+                    .map{Mutation.loadMore(list: $0)}
+            }
+                
+            else if currentState.filterState == .cafe {
+                return service.searchService.rx.searchCafe(searchText: currentState.searchText, sort: currentState.sortState, page: currentState.page)
+                    .map{Mutation.loadMore(list: $0)}
+            }
+            else {
+                // 25 / 25개씩 불러와서 정렬하고 25개만 끊어서 보여주기.
+                let requestBlogObservable = service.searchService.rx.searchBlog(searchText: currentState.searchText, sort: currentState.sortState, page: currentState.page)
+                    .map{Mutation.searchBlog(list: $0)}
+                let requestCafeObservable = service.searchService.rx.searchCafe(searchText: currentState.searchText, sort: currentState.sortState, page: currentState.page)
+                    .map{Mutation.loadMoreAll(list: $0)}
+                
+                return .concat(requestBlogObservable, requestCafeObservable)
+            }
         // 선택한 필터로 리로드
         case .selectFilter(let selected):
             let selectedFilter = SearchFilter.init(rawValue: selected ?? "All")!
             
-            let requestList = requestSearchObservable(searchText: currentState.searchText, sort: currentState.sortState, filter: selectedFilter, page: 1)
-                .share(replay: 1, scope: .forever)
-            
-            let pageCntObservable = requestList.map { $0.totalCount }
-                .filterNil()
-                .map { Mutation.totalPage(totalPage: $0) }
-            
-            let isEndPageObservable = requestList.map { $0.isEnd }
-                .filterNil()
-                .map { Mutation.isEndPage(isEnd: $0) }
-            
-            let requestObservable = requestList.map{ $0.items }
-                .filterNil()
-                .map{ Mutation.searchResult(list: $0) }
+            if selectedFilter == currentState.filterState {
+                return Observable.just(.none)
+            }
             
             let filterObservable = Observable.just(Mutation.changeFilter(selected: selectedFilter))
             
-            return .concat(filterObservable, requestObservable, pageCntObservable, isEndPageObservable)
+            if selectedFilter == .blog {
+                let requestObservable = service.searchService.rx.searchBlog(searchText: currentState.searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(filterObservable, requestObservable)
+            }
+                
+            else if selectedFilter == .cafe {
+                let requestObservable = service.searchService.rx.searchCafe(searchText: currentState.searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(filterObservable, requestObservable)
+            }
+            else {
+                // 25 / 25개씩 불러와서 정렬하고 25개만 끊어서 보여주기.
+                let requestBlogObservable = service.searchService.rx.searchBlog(searchText: currentState.searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchBlog(list: $0)}
+                let requestCafeObservable = service.searchService.rx.searchCafe(searchText: currentState.searchText, sort: currentState.sortState, page: 1)
+                    .map{Mutation.searchCafe(list: $0)}
+                
+                return .concat(filterObservable, requestBlogObservable, requestCafeObservable)
+            }
         // 선택한 정렬로 리로드
         case .selectSort(let selected):
-            let selectedSort = SearchSort.init(rawValue: selected ?? "Datetime")!
+            let selectedSort = SearchSort.init(rawValue: selected ?? "Title")!
             
-            let requestList = requestSearchObservable(searchText: currentState.searchText, sort: selectedSort, filter: currentState.filterState, page: 1)
-                .share(replay: 1, scope: .forever)
-            
-            let pageCntObservable = requestList.map { $0.totalCount }
-                .filterNil()
-                .map { Mutation.totalPage(totalPage: $0) }
-            
-            let isEndPageObservable = requestList.map { $0.isEnd }
-                .filterNil()
-                .map { Mutation.isEndPage(isEnd: $0) }
-            
-            let requestObservable = requestList.map{ $0.items }
-                .filterNil()
-                .map{ Mutation.searchResult(list: $0) }
+            if selectedSort == currentState.sortState {
+                return Observable.just(.none)
+            }
             
             let sortObservable = Observable.just(Mutation.changeSort(selected: selectedSort))
-            return .concat(sortObservable, requestObservable, pageCntObservable, isEndPageObservable)
+            
+            if currentState.filterState == .blog {
+                let requestObservable = service.searchService.rx.searchBlog(searchText: currentState.searchText, sort: selectedSort, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(sortObservable, requestObservable)
+            }
+                
+            else if currentState.filterState == .cafe {
+                let requestObservable = service.searchService.rx.searchCafe(searchText: currentState.searchText, sort: selectedSort, page: 1)
+                    .map{Mutation.searchResult(list: $0)}
+                
+                return .concat(sortObservable, requestObservable)
+            }
+            else {
+                // 25 / 25개씩 불러와서 정렬하고 25개만 끊어서 보여주기.
+                let requestBlogObservable = service.searchService.rx.searchBlog(searchText: currentState.searchText, sort: selectedSort, page: 1)
+                    .map{Mutation.searchBlog(list: $0)}
+                let requestCafeObservable = service.searchService.rx.searchCafe(searchText: currentState.searchText, sort: selectedSort, page: 1)
+                    .map{Mutation.searchCafe(list: $0)}
+                
+                return .concat(sortObservable, requestBlogObservable, requestCafeObservable)
+            }
+        case .readWebpage(let index):
+            return Observable.just(.changeRead(index: index))
         }
     }
     /**
@@ -264,30 +322,59 @@ final class SearchListViewModel: BaseViewModel, Reactor {
         switch mutation {
         // 히스토리뷰 보이기
         case .historyList(let list):
-            newState.historyList = list
-        // 검색 결과 리스트
+            newState.historyList = [HistoryTableViewSection(items: list)]
+        // 검색 결과 리스트 -> 블로그, 카페만 검색 시ㅊ
         case .searchResult(let list):
             newState.page = 2
-            if list.isEmpty {
+            newState.remainList = [SearchItem]()
+            if list.items?.isEmpty ?? true {
                 // 초기화 및 NoDataView 노출
-                newState.allList = [SearchItem]()
                 newState.resultList = [SearchTableViewSection]()
                 newState.noDataText = STR_SEARCH_NO_DATA
             } else {
                 newState.noDataText = ""
-                 // 페이징 시, 분할정렬하기위해 미리 정렬해두기
-                let sortedList: [SearchItem]
-                if state.sortState == .accuracy {
-                    sortedList = list.sorted(by: { sortText(str1: $0.name!, str2: $1.name!) })
-                } else {
-                    sortedList = list.sorted(by: { sortDateTime(str1: $0.datetime!, str2: $1.datetime!) })
-                }
-                newState.allList = sortedList
-                newState.resultList = [SearchTableViewSection(items: sortedList)]
+                newState.resultList = [SearchTableViewSection(items: list.items!)]
+                newState.isEnd = list.isEnd ?? true
+                newState.totalPage = list.totalCount ?? 0
             }
-            
+        case .searchBlog(let list):
+            newState.blogList = list
+        // ALL 검색 시
+        case .searchCafe(let list):
+            newState.page = 2
+            if list.items?.isEmpty ?? true && currentState.blogList?.items?.isEmpty ?? true {
+                // 초기화 및 NoDataView 노출
+                newState.remainList = [SearchItem]()
+                newState.resultList = [SearchTableViewSection]()
+                newState.noDataText = STR_SEARCH_NO_DATA
+            } else {
+                newState.noDataText = ""
+                newState.isEnd = (list.isEnd ?? true) && (currentState.blogList?.isEnd ?? true)
+                newState.totalPage = (list.totalCount ?? 0) + (currentState.blogList?.totalCount ?? 0)
+                // 페이징 시, 분할정렬하기위해 미리 정렬해두기
+                if let list1 = list.items, let list2 = currentState.blogList?.items {
+                    let sortedList: [SearchItem]
+                    if state.sortState == .accuracy {
+                        sortedList = divideSortText(list: list1, list2: list2)
+                    } else {
+                        sortedList = divideSortDateTime(list: list1, list2: list2)
+                    }
+                    let minCnt = min(PAGE_COUNT, sortedList.count)
+                    newState.resultList = [SearchTableViewSection(items: Array(sortedList[0..<minCnt]))]
+                    newState.remainList = Array(sortedList[minCnt..<sortedList.count])
+                } else {
+                    newState.remainList = [SearchItem]()
+                    if list.items?.isEmpty ?? true {
+                        newState.resultList = [SearchTableViewSection(items: currentState.blogList?.items ?? [])]
+                    } else {
+                        newState.resultList = [SearchTableViewSection(items: list.items ?? [])]
+                    }
+                    
+                }
+            }
         // 검색한 텍스트
         case .searchText(let text):
+            self.service.searchService.defaultAddSearchHistory(text)
             newState.searchText = text
         // 검색한 페이지 수
         case .totalPage(let totalPage):
@@ -295,30 +382,53 @@ final class SearchListViewModel: BaseViewModel, Reactor {
         // 페이징 가능 여부
         case .isEndPage(let isEnd):
             newState.isEnd = isEnd
-        // 더 불러온 데이터
-        case .addResultList(let list):
+        // 더 불러온 데이터 - cafe, blog 단일
+        case .loadMore(let list):
             self.isLoading.onNext(false)
-            let sortedList: [SearchItem]
-            // 분할정렬로 재정렬.
-            if state.sortState == .accuracy {
-                sortedList = divideSortText(list: list)
-            } else {
-                sortedList = divideSortDateTime(list: list)
-            }
-            newState.allList.append(contentsOf: sortedList)
-            let minCnt = min(currentState.page * PAGE_COUNT, newState.allList.count) - 1
-            newState.resultList = [SearchTableViewSection(items: Array(sortedList[0..<minCnt]))]
+            newState.resultList.append(contentsOf: [SearchTableViewSection(items: list.items ?? [])])
             newState.page += 1
+        // 더 불러온 데이터 - ALL
+        case .loadMoreAll(let list):
+            self.isLoading.onNext(false)
+            if let list1 = list.items, let list2 = currentState.blogList?.items {
+                var sortedList: [SearchItem]
+                if state.sortState == .accuracy {
+                    sortedList = divideSortText(list: list1, list2: list2)
+                } else {
+                    sortedList = divideSortDateTime(list: list1, list2: list2)
+                }
+                sortedList = divideSortText(list: sortedList, list2: currentState.remainList)
+                let minCnt = min(currentState.page * PAGE_COUNT, sortedList.count)
+                newState.resultList.append(contentsOf: [SearchTableViewSection(items: Array(sortedList[0..<minCnt]))])
+                newState.remainList = Array(sortedList[minCnt..<sortedList.count])
+            } else {
+                var sortedList: [SearchItem]
+                if list.items?.isEmpty ?? true {
+                    sortedList = divideSortText(list: currentState.blogList?.items ?? [], list2: currentState.remainList)
+                } else {
+                    sortedList = divideSortText(list: list.items ?? [], list2: currentState.remainList)
+                }
+                
+                let minCnt = min(currentState.page * PAGE_COUNT, sortedList.count)
+                newState.resultList.append(contentsOf: [SearchTableViewSection(items: Array(sortedList[0..<minCnt]))])
+                newState.remainList = Array(sortedList[minCnt..<sortedList.count])
+            }
             
-        // 필터뷰 보이기
-        case .showFilterView(let isShowing):
-            newState.isShowingFilterView = isShowing
+            newState.page += 1
         // 필터 상태 변경
         case .changeFilter(let selected):
             newState.filterState = selected
         // 정렬 상태 변경
         case .changeSort(let selected):
             newState.sortState = selected
+        // 읽음 상태로 변경(지속적으로 읽음 표시 -> selected이용. 단일성으로 읽음 표시 -> index이용)
+        case .changeRead(let index):
+            var newList = currentState.resultList.first?.items ?? []
+            newList[index].isReading = true
+            let minCnt = min(currentState.page * PAGE_COUNT, newList.count)
+            newState.resultList = [SearchTableViewSection(items: Array(newList[0..<minCnt]))]
+        case .none:
+            break
         }
         return newState
     }
@@ -331,7 +441,7 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Parameters:
      - Returns: Bool
      - Note: 페이징이 가능한 지에 대한 여부 반환
-    */
+     */
     func chkEnablePaging() -> Bool {
         if (currentState.page - 1) * PAGE_COUNT < currentState.totalPage {
             return true
@@ -346,9 +456,9 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Parameters:
      - Returns: Bool
      - Note: 현재 List가 비어있는 지에 대해 반환
-    */
+     */
     func isEmptyCurrentResultList() -> Bool {
-        if currentState.allList.isEmpty {
+        if currentState.resultList.first?.items.isEmpty ?? true {
             return true
         }
         return false
@@ -359,17 +469,17 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Author: Mephrine
      - Date: 20.07.13
      - Parameters:
-        -searchText : 검색어
-        -sort : 정렬명
-        -filter : 필터명
-        -page : 페이지 수
+     -searchText : 검색어
+     -sort : 정렬명
+     -filter : 필터명
+     -page : 페이지 수
      - Returns: Observable<[SearchItem]>
      - Note: 필터별 다른 API를 태운 후 Observable을 반환
-    */
+     */
     func requestSearchObservable(searchText: String, sort: SearchSort, filter: SearchFilter, page: Int) -> Observable<SearchResult> {
         if filter == .all {
             // 25 / 25개씩 불러와서 정렬하고 25개만 끊어서 보여주기.
-            return service.searchService.rx.searchAll(searchText: searchText, sort: sort, page: page).asObservable()
+            return service.searchService.rx.searchCafe(searchText: searchText, sort: sort, page: page).asObservable()
         }
         else if filter == .cafe {
             return service.searchService.rx.searchCafe(searchText: searchText, sort: sort, page: page).asObservable()
@@ -385,11 +495,11 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Author: Mephrine
      - Date: 20.07.13
      - Parameters:
-        -str1 : 정렬 String1
-        -str2 : 정렬 String2
+     -str1 : 정렬 String1
+     -str2 : 정렬 String2
      - Returns: Bool
      - Note: sorted 고차함수를 통한 텍스트 순으로 정렬을 위한 함수
-    */
+     */
     func sortText(str1: String, str2: String) -> Bool {
         var compared: Bool = false
         //두 문자열 비교전 2개 중에 작은 길이가 기준 길이
@@ -412,8 +522,8 @@ final class SearchListViewModel: BaseViewModel, Reactor {
      - Author: Mephrine
      - Date: 20.07.13
      - Parameters:
-        -str1 : 정렬 String1
-        -str2 : 정렬 String2
+     -str1 : 정렬 String1
+     -str2 : 정렬 String2
      - Returns: Bool
      - Note: sorted 고차함수를 통한 날짜 순으로 정렬을 위한 함수
      */
@@ -435,84 +545,87 @@ final class SearchListViewModel: BaseViewModel, Reactor {
     }
     
     /**
-    # divideSortText
-    - Author: Mephrine
-    - Date: 20.07.13
-    - Parameters:
-       -list : 분할정렬할 list
-    - Returns: [SearchItem]
-    - Note: allList와 분할정렬해서 반환
-    */
-    func divideSortText(list: [SearchItem]) -> [SearchItem] {
-        let sortedList = list.sorted(by: { sortText(str1: $0.name!, str2: $1.name!) })
-        
+     # divideSortText
+     - Author: Mephrine
+     - Date: 20.07.13
+     - Parameters:
+     -list : 분할정렬할 list
+     -list2 : 분할정렬할 list2
+     - Returns: [SearchItem]
+     - Note: allList와 분할정렬해서 반환
+     */
+    func divideSortText(list: [SearchItem], list2: [SearchItem]) -> [SearchItem] {
         var index1: Int = 0
         var index2: Int = 0
         var sortedAllList = [SearchItem]()
-        while index1 < sortedList.count - 1 && index2 < currentState.allList.count - 1 {
-            if sortText(str1: sortedList[index1].name!, str2: currentState.allList[index2].name!) {
+        while index1 < list.count && index2 < list2.count {
+            if sortText(str1: list[index1].title!, str2: list2[index2].title!) {
+                sortedAllList.append(list[index1])
                 index1 += 1
-                sortedAllList.append(sortedList[index1])
             } else {
+                sortedAllList.append(list2[index2])
                 index2 += 1
-                sortedAllList.append(currentState.allList[index2])
             }
         }
         
         // 남은 반대쪽 데이터 append
-        if index1 < sortedList.count - 1 {
-            for i in index1 ..< sortedList.count - 1 {
-                sortedAllList.append(sortedList[i])
-            }
+        for i in index1 ..< list.count {
+            sortedAllList.append(list[i])
         }
         
-        if index2 < currentState.allList.count - 1 {
-            for i in index2 ..< currentState.allList.count - 1 {
-                sortedAllList.append(currentState.allList[i])
-            }
+        for i in index2 ..< list2.count {
+            sortedAllList.append(list2[i])
         }
         
         return sortedAllList
     }
     
     /**
-    # divideSortDateTime
-    - Author: Mephrine
-    - Date: 20.07.13
-    - Parameters:
-       -list : 분할정렬할 list
-    - Returns: [SearchItem]
-    - Note: allList와 분할정렬해서 반환
-    */
-    func divideSortDateTime(list: [SearchItem]) -> [SearchItem] {
-        let sortedList = list.sorted(by: { sortDateTime(str1: $0.datetime!, str2: $1.datetime!) })
-        
+     # divideSortDateTime
+     - Author: Mephrine
+     - Date: 20.07.13
+     - Parameters:
+     -list : 분할정렬할 list
+     -list2 : 분할정렬할 list2
+     - Returns: [SearchItem]
+     - Note: allList와 분할정렬해서 반환
+     */
+    func divideSortDateTime(list: [SearchItem], list2: [SearchItem]) -> [SearchItem] {
+        //        let sortedList = list.sorted(by: { sortDateTime(str1: $0.datetime!, str2: $1.datetime!) })
         var index1: Int = 0
         var index2: Int = 0
         var sortedAllList = [SearchItem]()
-        while index1 < sortedList.count - 1 && index2 < currentState.allList.count - 1 {
-            if sortDateTime(str1: sortedList[index1].datetime!, str2: currentState.allList[index2].datetime!) {
+        while index1 < list.count && index2 < list2.count {
+            if sortDateTime(str1: list[index1].datetime!, str2: list2[index2].datetime!) {
+                sortedAllList.append(list[index1])
                 index1 += 1
-                sortedAllList.append(sortedList[index1])
             } else {
+                sortedAllList.append(list2[index2])
                 index2 += 1
-                sortedAllList.append(currentState.allList[index2])
             }
         }
         
         // 남은 반대쪽 데이터 append
-        if index1 < sortedList.count - 1 {
-            for i in index1 ..< sortedList.count - 1 {
-                sortedAllList.append(sortedList[i])
-            }
+        for i in index1 ..< list.count {
+            sortedAllList.append(list[i])
         }
         
-        if index2 < currentState.allList.count - 1 {
-            for i in index2 ..< currentState.allList.count - 1 {
-                sortedAllList.append(currentState.allList[i])
-            }
+        for i in index2 ..< list2.count {
+            sortedAllList.append(list2[i])
         }
         
         return sortedAllList
+    }
+    
+    // MARK: Action
+    func moveToDetail(selected: SearchItem) {
+        var index = 0
+        for (i, item) in (currentState.resultList.first?.items ?? []).enumerated() {
+            if (item.url ?? "") == (selected.url ?? "") {
+                index = i
+                break
+            }
+        }
+        steps.accept(AppStep.goSearchDetail(model: selected, row: index))
     }
 }

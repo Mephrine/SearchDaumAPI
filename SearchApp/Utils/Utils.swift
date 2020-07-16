@@ -1,5 +1,5 @@
 //
-//  FontUtils.swift
+//  Utils.swift
 //  SearchApp
 //
 //  Created by Mephrine on 2020/07/12.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class FontUtils {
+final class Utils {
     /**
      # (E) FONT_TYPE
      - Author: Mephrine
@@ -34,5 +34,31 @@ class FontUtils {
      */
     static func Font(_ type: FONT_TYPE, size: CGFloat) -> UIFont {
         return UIFont(name: type.rawValue, size: size)!
+    }
+    
+    /**
+    # openExternalLink
+    - Author: Mephrine
+    - Date: 20.07.12
+    - Parameters:
+       - urlStr : String 타입 링크
+       - handler : Completion Handler
+    - Returns:
+    - Note: 외부 브라우저/ 외부 링크 실행.
+    */
+    static func openExternalLink(url: String, _ handler:(() -> Void)? = nil) {
+        guard let url = URL(string: url) else {
+            return
+        }
+        
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url, options: [:]) { (result) in
+                handler?()
+            }
+            
+        } else {
+            UIApplication.shared.openURL(url)
+            handler?()
+        }
     }
 }

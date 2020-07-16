@@ -11,18 +11,6 @@ import Moya
 import RxSwift
 import SwiftyJSON
 
-// MARK: - Config
-// Page Count
-let PAGE_COUNT               = 25
-
-// DOMAIN
-let API_DOMAIN               = "https://dapi.kakao.com"
-
-// API Log
-let SHOWING_DEBUG_REQUEST_API_LOG    = true
-let SHOWING_DEBUG_RECEIVE_API_LOG    = true
-
-
 public protocol ALSwiftyJSONAble {
     init?(jsonData:JSON)
 }
@@ -97,7 +85,7 @@ extension CallAPI: TargetType, AccessTokenAuthorizable {
     var headers: [String: String]? {
         switch self {
         default :
-            return ["Authorization": "KakaoAK f76c84657bbe836b8016875a62baeb7c"]
+            return ["Authorization": "KakaoAK c12de4cb2f877c3ae8773020d5ffba9a"]
         }
     }
     
@@ -105,7 +93,7 @@ extension CallAPI: TargetType, AccessTokenAuthorizable {
     var parameters: [String: Any]? {
         switch self {
         case .searchCafe(let query, let sort, let page), .searchBlog(let query, let sort, let page):
-            return ["query": query, "sort": sort, "page": page, "per_page": PAGE_COUNT]
+            return ["query": query, "sort": sort, "page": page, "size": PAGE_COUNT]
         default :
             return nil
         }
